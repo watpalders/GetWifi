@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Wi-Fi Link</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"] { width: calc(100% - 22px); padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        .result { margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
+        .result p { word-wrap: break-word; }
+        .result img { margin-top: 10px; border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create New Wi-Fi Access Link</h1>
+        <form id="createForm">
+            <label for="ssid">Wi-Fi Network Name (SSID):</label>
+            <input type="text" id="ssid" name="ssid" required>
+
+            <label for="password">Wi-Fi Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Generate Links</button>
+        </form>
+
+        <div id="result" class="result" style="display:none;">
+            <h2>Generated Links:</h2>
+            <p><strong>Public Link:</strong> <a id="publicLink" href="#" target="_blank"></a></p>
+            <p><strong>Secret Admin Link:</strong> <a id="adminLink" href="#" target="_blank"></a></p>
+            <p>Scan this QR code to manage this Wi-Fi network:</p>
+            <img id="adminQrCode" src="" alt="Admin Link QR Code">
+            <p>
+                <em>Important: Bookmark or print your Secret Admin Link and QR code. This is your only way to modify these Wi-Fi credentials later.</em>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('createForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const ssid = document.getElementById('ssid').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ssid, password })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                const publicLinkElement = document.getElementById('publicLink');
+                publicLinkElement.href = window.location.origin + data.publicLink;
+                publicLinkElement.textContent = window.location.origin + data.publicLink;
+
+                const adminLinkElement = document.getElementById('adminLink');
+                adminLinkElement.href = window.location.origin + data.adminLink;
+                adminLinkElement.textContent = window.location.origin + data.adminLink;
+
+                const adminQrCodeElement = document.getElementById('adminQrCode');
+                adminQrCodeElement.src = data.qrCodeBase64;
+
+                document.getElementById('result').style.display = 'block';
+            } catch (error) {
+                console.error('Error generating links:', error);
+                alert('Failed to generate links. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

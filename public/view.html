@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect to Wi-Fi</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 90vh; }
+        .container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); max-width: 400px; text-align: center; }
+        h1 { color: #333; margin-bottom: 20px; }
+        p { font-size: 1.1em; color: #555; margin-bottom: 10px; }
+        strong { color: #000; }
+        .wifi-details { background-color: #e9ecef; border-radius: 5px; padding: 15px; margin-top: 20px; }
+        .error-message { color: red; font-weight: bold; }
+        button { background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; margin-top: 20px; }
+        button:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Connect to Wi-Fi</h1>
+        <div id="wifiDetails" class="wifi-details">
+            <p><strong>Network Name (SSID):</strong> <span id="ssid">Loading...</span></p>
+            <p><strong>Password:</strong> <span id="password">Loading...</span></p>
+            <button id="connectButton" style="display:none;">Connect to Wi-Fi (iOS/Android)</button>
+        </div>
+        <p id="errorMessage" class="error-message" style="display:none;"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const publicId = window.location.pathname.split('/').pop();
+            const ssidElement = document.getElementById('ssid');
+            const passwordElement = document.getElementById('password');
+            const errorMessageElement = document.getElementById('errorMessage');
+            const connectButton = document.getElementById('connectButton');
+
+            try {
+                const response = await fetch(`/api/v/${publicId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data.ssid && data.password) {
+                    ssidElement.textContent = data.ssid;
+                    passwordElement.textContent = data.password;
+
+                    // Attempt to create a Wi-Fi configuration link for mobile devices
+                    const wifiConfig = `WIFI:S:${data.ssid};T:WPA;P:${data.password};;`;
+                    // For modern browsers and some mobile apps, the web+wifi scheme might work
+                    // For others, users will need to manually enter.
+                    connectButton.onclick = () => {
+                        window.location.href = `web+wifi://${encodeURIComponent(wifiConfig)}`;
+                    };
+                    connectButton.style.display = 'block';
+
+                } else {
+                    ssidElement.textContent = 'N/A';
+                    passwordElement.textContent = 'N/A';
+                    errorMessageElement.textContent = 'Wi-Fi credentials not found for this link.';
+                    errorMessageElement.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error fetching Wi-Fi details:', error);
+                ssidElement.textContent = 'Error';
+                passwordElement.textContent = 'Error';
+                errorMessageElement.textContent = 'Could not retrieve Wi-Fi details. The link might be invalid or expired.';
+                errorMessageElement.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

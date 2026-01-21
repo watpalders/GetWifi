@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 90vh; }
+        .container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); max-width: 500px; text-align: center; }
+        h1 { color: #333; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"] { width: calc(100% - 22px); padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:hover { background-color: #0056b3; }
+        .message { margin-top: 20px; font-weight: bold; }
+        .error-message { color: red; }
+        .success-message { color: green; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Panel</h1>
+        <form id="adminForm">
+            <label for="ssid">Wi-Fi Network Name (SSID):</label>
+            <input type="text" id="ssid" name="ssid" required>
+
+            <label for="password">Wi-Fi Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Update Credentials</button>
+        </form>
+        <p id="message" class="message"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const secretId = window.location.pathname.split('/').pop();
+            const ssidInput = document.getElementById('ssid');
+            const passwordInput = document.getElementById('password');
+            const messageElement = document.getElementById('message');
+
+            // Fetch current credentials
+            try {
+                const response = await fetch(`/api/admin/${secretId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data.ssid) {
+                    ssidInput.value = data.ssid;
+                    passwordInput.value = data.password;
+                } else {
+                    messageElement.textContent = 'No Wi-Fi credentials found for this admin link.';
+                    messageElement.classList.add('error-message');
+                    // Optionally disable form
+                    document.getElementById('adminForm').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error fetching admin details:', error);
+                messageElement.textContent = 'Could not retrieve admin details. The link might be invalid.';
+                messageElement.classList.add('error-message');
+                document.getElementById('adminForm').style.display = 'none';
+            }
+
+            // Handle form submission for updates
+            document.getElementById('adminForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+
+                const newSsid = ssidInput.value;
+                const newPassword = passwordInput.value;
+
+                try {
+                    const response = await fetch(`/api/admin/${secretId}`, {
+                        method: 'PUT', // or POST, depending on preference
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ ssid: newSsid, password: newPassword })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    messageElement.textContent = data.message || 'Credentials updated successfully!';
+                    messageElement.classList.remove('error-message');
+                    messageElement.classList.add('success-message');
+                } catch (error) {
+                    console.error('Error updating credentials:', error);
+                    messageElement.textContent = 'Failed to update credentials. Please try again.';
+                    messageElement.classList.remove('success-message');
+                    messageElement.classList.add('error-message');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
