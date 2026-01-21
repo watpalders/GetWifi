@@ -1,0 +1,8 @@
+node_modules/
+wifi_credentials.db
+.env
+npm-debug.log*
+*.log
+.DS_Store
+build/
+dist/
