@@ -1,6 +1,5 @@
 const express = require('express');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
 const ShortUniqueId = require('short-unique-id');
 const qrcode = require('qrcode');
 const dbPromise = require('./database.js');
@@ -24,6 +23,8 @@ app.post('/create', async (req, res) => {
     }
 
     try {
+        // Dynamically import uuidv4 inside the async function
+        const { v4: uuidv4 } = await import('uuid');
         const publicId = uid.rnd();
         const secretId = uuidv4(); // Use UUID for a truly unguessable secret ID
 
@@ -103,6 +104,8 @@ app.put('/api/admin/:secretId', async (req, res) => {
     }
 
     try {
+        // Dynamically import uuidv4 inside the async function
+        const { v4: uuidv4 } = await import('uuid');
         const db = await dbPromise;
         const result = await db.run('UPDATE credentials SET ssid = ?, password = ? WHERE secretId = ?', [ssid, password, secretId]);
 
