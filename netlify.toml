@@ -1,0 +1,11 @@
+[build]
+  # This is the directory where our serverless function will be.
+  functions = "netlify/functions"
+  # This is the directory that contains our static assets, like index.html.
+  publish = "public"
+
+[[redirects]]
+  # This rule rewrites all incoming requests to our serverless function.
+  from = "/*"
+  to = "/.netlify/functions/api"
+  status = 200

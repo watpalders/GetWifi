@@ -108,8 +108,7 @@ app.put('/api/admin/:secretId', async (req, res) => {
 
         if (result.changes > 0) {
             res.json({ message: 'Credentials updated successfully!' });
-        }
-        else {
+        } else {
             res.status(404).json({ error: 'Admin link not found or invalid.' });
         }
     } catch (error) {
@@ -118,12 +117,18 @@ app.put('/api/admin/:secretId', async (req, res) => {
     }
 });
 
-dbPromise.then(db => {
-    console.log('Database connection established.');
-    app.listen(port, () => {
-        console.log(`Server listening on port ${port}`);
+// Start the server only if this file is run directly
+if (require.main === module) {
+    dbPromise.then(db => {
+        console.log('Database connection established.');
+        app.listen(port, () => {
+            console.log(`Server listening on port ${port}`);
+        });
+    }).catch(err => {
+        console.error('Failed to start server:', err);
+        process.exit(1);
     });
-}).catch(err => {
-    console.error('Failed to start server:', err);
-    process.exit(1);
-});
+}
+
+// Export the app for use in the serverless function
+module.exports = app;
