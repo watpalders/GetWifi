@@ -82,7 +82,7 @@ app.get('/api/admin/:secretId', async (req, res) => {
     const { secretId } = req.params;
     try {
         const db = await dbPromise;
-        const credential = await db.get('SELECT ssid, password FROM credentials WHERE secretId = ?', [secretId]);
+        const credential = await db.get('SELECT publicId, ssid, password FROM credentials WHERE secretId = ?', [secretId]);
         if (credential) {
             res.json(credential);
         } else {

@@ -4,71 +4,264 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connect to Wi-Fi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 90vh; }
-        .container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); max-width: 400px; text-align: center; }
-        h1 { color: #333; margin-bottom: 20px; }
-        p { font-size: 1.1em; color: #555; margin-bottom: 10px; }
-        strong { color: #000; }
-        .wifi-details { background-color: #e9ecef; border-radius: 5px; padding: 15px; margin-top: 20px; }
-        .error-message { color: red; font-weight: bold; }
-        button { background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; margin-top: 20px; }
-        button:hover { background-color: #218838; }
+        :root {
+            --primary-color: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --accent-color: #6c5ce7;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-main);
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            text-align: center;
+            margin: 20px;
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 24px;
+            margin-bottom: 8px;
+            margin-top: 0;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 32px;
+            margin-top: 0;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 16px;
+            border-radius: 16px;
+            display: inline-block;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .qr-container canvas, .qr-container img {
+            display: block; /* Removes weird spacing */
+        }
+
+        .credentials-group {
+            text-align: left;
+            margin-bottom: 24px;
+        }
+
+        .credential-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .credential-box {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .credential-box:active {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .credential-value {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 16px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 10px;
+        }
+
+        .copy-icon {
+            opacity: 0.7;
+            width: 20px;
+            height: 20px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Loading State */
+        .skeleton {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            width: 100%;
+            height: 20px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 0.3; }
+            100% { opacity: 0.6; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Connect to Wi-Fi</h1>
-        <div id="wifiDetails" class="wifi-details">
-            <p><strong>Network Name (SSID):</strong> <span id="ssid">Loading...</span></p>
-            <p><strong>Password:</strong> <span id="password">Loading...</span></p>
-            <button id="connectButton" style="display:none;">Connect to Wi-Fi (iOS/Android)</button>
+    <div class="glass-card">
+        <h1>Welcome Guest</h1>
+        <p class="subtitle">Scan or tap details to copy</p>
+
+        <div id="qrPlaceHolder" class="qr-container">
+            <!-- QR Code will be injected here -->
+            <div id="qrcode"></div>
         </div>
-        <p id="errorMessage" class="error-message" style="display:none;"></p>
+
+        <div class="credentials-group">
+            <span class="credential-label">Network (SSID)</span>
+            <div class="credential-box" onclick="copyToClipboard('ssid')">
+                <span id="ssid" class="credential-value">
+                    <div class="skeleton" style="width: 120px;"></div>
+                </span>
+                <svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            </div>
+
+            <span class="credential-label">Password</span>
+            <div class="credential-box" onclick="copyToClipboard('password')">
+                <div id="passwordHelper" style="flex: 1; overflow: hidden;">
+                    <span id="password" class="credential-value">
+                        <div class="skeleton" style="width: 150px;"></div>
+                    </span>
+                </div>
+                <svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            </div>
+        </div>
+        
+        <div id="errorMessage" class="subtitle" style="color: #ff6b6b; display: none;"></div>
     </div>
 
+    <div id="toast" class="toast">Copied to clipboard!</div>
+
     <script>
+        let wifiData = { ssid: '', password: '' };
+
         document.addEventListener('DOMContentLoaded', async () => {
             const publicId = window.location.pathname.split('/').pop();
             const ssidElement = document.getElementById('ssid');
             const passwordElement = document.getElementById('password');
-            const errorMessageElement = document.getElementById('errorMessage');
-            const connectButton = document.getElementById('connectButton');
+            const bgElement = document.body;
 
             try {
                 const response = await fetch(`/api/v/${publicId}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error('Network response was not ok');
+                
                 const data = await response.json();
+                wifiData = data;
 
                 if (data.ssid && data.password) {
                     ssidElement.textContent = data.ssid;
                     passwordElement.textContent = data.password;
 
-                    // Attempt to create a Wi-Fi configuration link for mobile devices
-                    const wifiConfig = `WIFI:S:${data.ssid};T:WPA;P:${data.password};;`;
-                    // For modern browsers and some mobile apps, the web+wifi scheme might work
-                    // For others, users will need to manually enter.
-                    connectButton.onclick = () => {
-                        window.location.href = `web+wifi://${encodeURIComponent(wifiConfig)}`;
-                    };
-                    connectButton.style.display = 'block';
+                    // Generate Wi-Fi Config String
+                    // Format: WIFI:T:WPA;S:MyNetwork;P:MyPassword;;
+                    // Note: We assume WPA/WPA2 as it's most common.
+                    const wifiString = `WIFI:T:WPA;S:${data.ssid};P:${data.password};;`;
+                    
+                    // Generate QR Code
+                    new QRCode(document.getElementById("qrcode"), {
+                        text: wifiString,
+                        width: 180,
+                        height: 180,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
 
                 } else {
-                    ssidElement.textContent = 'N/A';
-                    passwordElement.textContent = 'N/A';
-                    errorMessageElement.textContent = 'Wi-Fi credentials not found for this link.';
-                    errorMessageElement.style.display = 'block';
+                    showError("Credentials not found");
                 }
             } catch (error) {
-                console.error('Error fetching Wi-Fi details:', error);
-                ssidElement.textContent = 'Error';
-                passwordElement.textContent = 'Error';
-                errorMessageElement.textContent = 'Could not retrieve Wi-Fi details. The link might be invalid or expired.';
-                errorMessageElement.style.display = 'block';
+                console.error(error);
+                showError("Invalid Link or Server Error");
             }
         });
+
+        function copyToClipboard(type) {
+            const text = type === 'ssid' ? wifiData.ssid : wifiData.password;
+            if (!text) return;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(`${type === 'ssid' ? 'Network Name' : 'Password'} copied!`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                // Fallback for older browsers if needed
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        function showError(msg) {
+            document.getElementById('errorMessage').textContent = msg;
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('ssid').textContent = '---';
+            document.getElementById('password').textContent = '---';
+            document.querySelector('.qr-container').style.display = 'none';
+        }
     </script>
 </body>
 </html>

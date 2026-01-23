@@ -1,35 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
+    <title>WifiSite Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 90vh; }
-        .container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); max-width: 500px; text-align: center; }
-        h1 { color: #333; margin-bottom: 20px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="password"] { width: calc(100% - 22px); padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; }
-        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        button:hover { background-color: #0056b3; }
-        .message { margin-top: 20px; font-weight: bold; }
-        .error-message { color: red; }
-        .success-message { color: green; }
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --card-bg: #ffffff;
+            --text-main: #2d3436;
+            --accent-color: #667eea;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 18px;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .qr-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .code-snippet {
+            background: #f0f0f0;
+            padding: 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            word-break: break-all;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .status-msg {
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .success {
+            color: #27ae60;
+        }
+
+        .error {
+            color: #e74c3c;
+        }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>Admin Panel</h1>
-        <form id="adminForm">
-            <label for="ssid">Wi-Fi Network Name (SSID):</label>
-            <input type="text" id="ssid" name="ssid" required>
 
-            <label for="password">Wi-Fi Password:</label>
-            <input type="password" id="password" name="password" required>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="card full-width">
+            <h1 style="margin: 0; font-size: 24px;">Admin Dashboard</h1>
+            <p style="margin: 5px 0 0 0; opacity: 0.7;">Manage your Smart Plaque credentials</p>
+        </div>
 
-            <button type="submit">Update Credentials</button>
-        </form>
-        <p id="message" class="message"></p>
+        <!-- Update Credentials Form -->
+        <div class="card">
+            <h2>Update Wifi Info</h2>
+            <form id="adminForm">
+                <label for="ssid">Network Name (SSID)</label>
+                <input type="text" id="ssid" name="ssid" required placeholder="Checking...">
+
+                <label for="password">Password</label>
+                <input type="text" id="password" name="password" required placeholder="Checking...">
+
+                <button type="submit">Update Plaque</button>
+            </form>
+            <p id="message" class="status-msg"></p>
+        </div>
+
+        <!-- Product Preview & Links -->
+        <div class="card">
+            <h2>Product Setup</h2>
+            <p style="font-size: 14px;">Use this link/QR for your physical plaque.</p>
+
+            <label>Public Guest Link</label>
+            <div id="publicLinkDisplay" class="code-snippet">Loading...</div>
+
+            <div class="qr-preview">
+                <div id="qrcode"></div>
+                <p style="font-size: 12px; color: #666;">Scan to test Guest View</p>
+                <!-- <button style="background: #2d3436; margin-top: 10px;" onclick="downloadQR()">Download QR</button> -->
+            </div>
+        </div>
     </div>
 
     <script>
@@ -38,63 +179,66 @@
             const ssidInput = document.getElementById('ssid');
             const passwordInput = document.getElementById('password');
             const messageElement = document.getElementById('message');
+            const publicLinkDisplay = document.getElementById('publicLinkDisplay');
 
-            // Fetch current credentials
+            // Fetch current details
             try {
                 const response = await fetch(`/api/admin/${secretId}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error('Failed to load');
                 const data = await response.json();
 
                 if (data.ssid) {
                     ssidInput.value = data.ssid;
                     passwordInput.value = data.password;
-                } else {
-                    messageElement.textContent = 'No Wi-Fi credentials found for this admin link.';
-                    messageElement.classList.add('error-message');
-                    // Optionally disable form
-                    document.getElementById('adminForm').style.display = 'none';
+
+                    if (data.publicId) {
+                        const publicUrl = `${window.location.origin}/v/${data.publicId}`;
+                        publicLinkDisplay.textContent = publicUrl;
+
+                        // Generate QR for the PUBLIC URL (for the physical product)
+                        new QRCode(document.getElementById("qrcode"), {
+                            text: publicUrl,
+                            width: 150,
+                            height: 150,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.M
+                        });
+                    }
                 }
             } catch (error) {
-                console.error('Error fetching admin details:', error);
-                messageElement.textContent = 'Could not retrieve admin details. The link might be invalid.';
-                messageElement.classList.add('error-message');
-                document.getElementById('adminForm').style.display = 'none';
+                console.error(error);
+                messageElement.textContent = 'Error loading data.';
+                messageElement.className = 'status-msg error';
             }
 
-            // Handle form submission for updates
-            document.getElementById('adminForm').addEventListener('submit', async function(event) {
+            // Handle Update
+            document.getElementById('adminForm').addEventListener('submit', async function (event) {
                 event.preventDefault();
-
-                const newSsid = ssidInput.value;
-                const newPassword = passwordInput.value;
+                messageElement.textContent = 'Updating...';
+                messageElement.className = 'status-msg';
 
                 try {
                     const response = await fetch(`/api/admin/${secretId}`, {
-                        method: 'PUT', // or POST, depending on preference
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ ssid: newSsid, password: newPassword })
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ssid: ssidInput.value,
+                            password: passwordInput.value
+                        })
                     });
 
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error('Update failed');
 
-                    const data = await response.json();
-                    messageElement.textContent = data.message || 'Credentials updated successfully!';
-                    messageElement.classList.remove('error-message');
-                    messageElement.classList.add('success-message');
+                    messageElement.textContent = 'Success! Credentials updated.';
+                    messageElement.className = 'status-msg success';
                 } catch (error) {
-                    console.error('Error updating credentials:', error);
-                    messageElement.textContent = 'Failed to update credentials. Please try again.';
-                    messageElement.classList.remove('success-message');
-                    messageElement.classList.add('error-message');
+                    messageElement.textContent = 'Update failed. Try again.';
+                    messageElement.className = 'status-msg error';
                 }
             });
         });
     </script>
 </body>
+
 </html>
