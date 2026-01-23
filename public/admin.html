@@ -4,95 +4,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WifiSite Admin</title>
+    <title>Host Dashboard | Smart Plaque</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            --card-bg: #ffffff;
-            --text-main: #2d3436;
-            --accent-color: #667eea;
+            --primary-color: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --accent-color: #6c5ce7;
+            --bg-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --card-glass: rgba(255, 255, 255, 0.05);
         }
 
         body {
             font-family: 'Outfit', sans-serif;
-            background: var(--bg-gradient);
-            color: var(--text-main);
             margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            background: var(--bg-gradient);
             min-height: 100vh;
+            color: var(--text-main);
+            padding: 20px;
         }
 
-        .dashboard {
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            font-weight: 600;
+            margin: 0;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 20px;
-            max-width: 800px;
-            width: 100%;
+            gap: 24px;
         }
 
         @media (min-width: 768px) {
-            .dashboard {
-                grid-template-columns: 1fr 1fr;
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .full-width {
+                grid-column: 1 / -1;
             }
         }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .full-width {
-            grid-column: 1 / -1;
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
         }
 
         h2 {
-            margin-top: 0;
             font-size: 18px;
-            color: var(--accent-color);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-value {
+            font-size: 48px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 14px;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
+            margin-bottom: 8px;
             font-size: 14px;
+            color: var(--text-muted);
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 14px;
+            color: white;
             font-family: inherit;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            transition: all 0.2s;
         }
 
         input:focus {
-            border-color: var(--accent-color);
             outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(0, 0, 0, 0.3);
         }
 
         button {
-            background-color: var(--accent-color);
-            color: white;
-            padding: 12px 24px;
+            background: white;
+            color: #2a5298;
             border: none;
-            border-radius: 8px;
-            cursor: pointer;
+            padding: 14px 28px;
+            border-radius: 12px;
             font-weight: 600;
+            cursor: pointer;
             width: 100%;
+            font-family: inherit;
             transition: transform 0.1s;
         }
 
@@ -100,143 +139,227 @@
             transform: scale(0.98);
         }
 
-        .qr-preview {
+        button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid var(--glass-border);
+        }
+
+        button.secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .qr-section {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 20px;
-        }
-
-        .code-snippet {
-            background: #f0f0f0;
-            padding: 8px;
-            border-radius: 6px;
-            font-family: monospace;
-            word-break: break-all;
-            margin-bottom: 10px;
-            font-size: 12px;
-        }
-
-        .status-msg {
-            margin-top: 10px;
-            font-weight: bold;
             text-align: center;
         }
 
-        .success {
-            color: #27ae60;
+        .qr-preview {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            display: inline-block;
         }
 
-        .error {
-            color: #e74c3c;
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #27ae60;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.error {
+            background: #e74c3c;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: -5px;
+            margin-left: 10px;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <div class="dashboard">
-        <!-- Header -->
-        <div class="card full-width">
-            <h1 style="margin: 0; font-size: 24px;">Admin Dashboard</h1>
-            <p style="margin: 5px 0 0 0; opacity: 0.7;">Manage your Smart Plaque credentials</p>
-        </div>
+    <div class="container">
+        <header>
+            <h1>Host Dashboard</h1>
+            <p class="subtitle">Manage your guest experience</p>
+        </header>
 
-        <!-- Update Credentials Form -->
-        <div class="card">
-            <h2>Update Wifi Info</h2>
-            <form id="adminForm">
-                <label for="ssid">Network Name (SSID)</label>
-                <input type="text" id="ssid" name="ssid" required placeholder="Checking...">
+        <div class="grid">
+            <!-- Analytics Card -->
+            <div class="glass-card">
+                <h2>📊 Engagement</h2>
+                <div class="stat-value" id="viewCount">-</div>
+                <div class="stat-label">Total Guest Scans</div>
+            </div>
 
-                <label for="password">Password</label>
-                <input type="text" id="password" name="password" required placeholder="Checking...">
+            <!-- Print Assets Card -->
+            <div class="glass-card qr-section">
+                <h2>🖨️ Plaque Assets</h2>
+                <div id="qrcode" class="qr-preview"></div>
+                <button class="secondary" onclick="downloadQR()">Download .PNG for Engraving</button>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">High-res QR for your physical
+                    product.</p>
+            </div>
 
-                <button type="submit">Update Plaque</button>
-            </form>
-            <p id="message" class="status-msg"></p>
-        </div>
+            <!-- Settings Card -->
+            <div class="glass-card full-width">
+                <h2>⚙️ Guest Configuration</h2>
+                <form id="adminForm">
+                    <div class="grid" style="gap: 20px;">
+                        <div>
+                            <label>Guest Greeting</label>
+                            <input type="text" id="greeting" name="greeting" placeholder="e.g. Welcome to the Studio">
+                        </div>
+                        <div>
+                            <label>Network Name (SSID)</label>
+                            <input type="text" id="ssid" name="ssid" placeholder="Checking...">
+                        </div>
+                    </div>
 
-        <!-- Product Preview & Links -->
-        <div class="card">
-            <h2>Product Setup</h2>
-            <p style="font-size: 14px;">Use this link/QR for your physical plaque.</p>
+                    <label>Password</label>
+                    <input type="text" id="password" name="password" placeholder="Checking...">
 
-            <label>Public Guest Link</label>
-            <div id="publicLinkDisplay" class="code-snippet">Loading...</div>
-
-            <div class="qr-preview">
-                <div id="qrcode"></div>
-                <p style="font-size: 12px; color: #666;">Scan to test Guest View</p>
-                <!-- <button style="background: #2d3436; margin-top: 10px;" onclick="downloadQR()">Download QR</button> -->
+                    <button type="submit">
+                        Update Configuration
+                        <div id="submitLoader" class="loader"></div>
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 
+    <div id="toast" class="toast">Settings updated successfully!</div>
+
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const secretId = window.location.pathname.split('/').pop();
+            const form = document.getElementById('adminForm');
+            const toast = document.getElementById('toast');
+
+            // Elements
             const ssidInput = document.getElementById('ssid');
             const passwordInput = document.getElementById('password');
-            const messageElement = document.getElementById('message');
-            const publicLinkDisplay = document.getElementById('publicLinkDisplay');
+            const greetingInput = document.getElementById('greeting');
+            const viewCountEl = document.getElementById('viewCount');
+            const loader = document.getElementById('submitLoader');
 
-            // Fetch current details
+            // 1. Fetch Data
             try {
                 const response = await fetch(`/api/admin/${secretId}`);
                 if (!response.ok) throw new Error('Failed to load');
                 const data = await response.json();
 
-                if (data.ssid) {
-                    ssidInput.value = data.ssid;
-                    passwordInput.value = data.password;
+                // Populate Fields
+                ssidInput.value = data.ssid || '';
+                passwordInput.value = data.password || '';
+                greetingInput.value = data.greeting || 'Welcome Guest';
+                viewCountEl.textContent = data.views !== undefined ? data.views : 0;
 
-                    if (data.publicId) {
-                        const publicUrl = `${window.location.origin}/v/${data.publicId}`;
-                        publicLinkDisplay.textContent = publicUrl;
-
-                        // Generate QR for the PUBLIC URL (for the physical product)
-                        new QRCode(document.getElementById("qrcode"), {
-                            text: publicUrl,
-                            width: 150,
-                            height: 150,
-                            colorDark: "#000000",
-                            colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.M
-                        });
-                    }
+                // Generate QR (Public Link)
+                if (data.publicId) {
+                    const publicUrl = `${window.location.origin}/v/${data.publicId}`;
+                    new QRCode(document.getElementById("qrcode"), {
+                        text: publicUrl,
+                        width: 160,
+                        height: 160,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
                 }
-            } catch (error) {
-                console.error(error);
-                messageElement.textContent = 'Error loading data.';
-                messageElement.className = 'status-msg error';
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to load dashboard data', true);
             }
 
-            // Handle Update
-            document.getElementById('adminForm').addEventListener('submit', async function (event) {
-                event.preventDefault();
-                messageElement.textContent = 'Updating...';
-                messageElement.className = 'status-msg';
+            // 2. Handle Update
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = form.querySelector('button');
+                btn.disabled = true;
+                loader.style.display = 'inline-block';
 
                 try {
-                    const response = await fetch(`/api/admin/${secretId}`, {
+                    const res = await fetch(`/api/admin/${secretId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             ssid: ssidInput.value,
-                            password: passwordInput.value
+                            password: passwordInput.value,
+                            greeting: greetingInput.value
                         })
                     });
 
-                    if (!response.ok) throw new Error('Update failed');
+                    if (!res.ok) throw new Error('Update failed');
 
-                    messageElement.textContent = 'Success! Credentials updated.';
-                    messageElement.className = 'status-msg success';
-                } catch (error) {
-                    messageElement.textContent = 'Update failed. Try again.';
-                    messageElement.className = 'status-msg error';
+                    showToast('Configuration updated successfully!');
+                } catch (err) {
+                    showToast('Failed to update settings', true);
+                } finally {
+                    btn.disabled = false;
+                    loader.style.display = 'none';
                 }
             });
+
+            // Helpers
+            window.downloadQR = function () {
+                const canvas = document.querySelector('#qrcode canvas');
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = 'plaque-qr-code.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                } else {
+                    const img = document.querySelector('#qrcode img');
+                    if (img) {
+                        const link = document.createElement('a');
+                        link.download = 'plaque-qr-code.png';
+                        link.href = img.src;
+                        link.click();
+                    }
+                }
+            };
+
+            function showToast(msg, isError = false) {
+                toast.textContent = msg;
+                toast.className = isError ? 'toast error' : 'toast';
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            }
         });
     </script>
 </body>

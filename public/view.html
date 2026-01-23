@@ -207,6 +207,11 @@
                 wifiData = data;
 
                 if (data.ssid && data.password) {
+                    // Update Greeting
+                    if (data.greeting) {
+                        document.querySelector('h1').textContent = data.greeting;
+                    }
+                    
                     ssidElement.textContent = data.ssid;
                     passwordElement.textContent = data.password;
 

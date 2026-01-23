@@ -15,9 +15,21 @@ async function init() {
                 publicId TEXT PRIMARY KEY,
                 secretId TEXT NOT NULL,
                 ssid TEXT NOT NULL,
-                password TEXT NOT NULL
+                password TEXT NOT NULL,
+                views INTEGER DEFAULT 0,
+                greeting TEXT DEFAULT 'Welcome Guest'
             );
         `);
+
+        // Migration: Add columns if they don't exist (for existing databases)
+        // We catch errors because "duplicate column name" means it's already there.
+        try {
+            await db.exec(`ALTER TABLE credentials ADD COLUMN views INTEGER DEFAULT 0;`);
+        } catch (e) { /* Column likely exists */ }
+
+        try {
+            await db.exec(`ALTER TABLE credentials ADD COLUMN greeting TEXT DEFAULT 'Welcome Guest';`);
+        } catch (e) { /* Column likely exists */ }
 
         console.log('Database initialized successfully.');
         return db;

@@ -29,6 +29,7 @@ app.post('/create', async (req, res) => {
         const secretId = uuidv4(); // Use UUID for a truly unguessable secret ID
 
         const db = await dbPromise;
+        // Defaults for views and greeting are handled by the DB schema
         await db.run('INSERT INTO credentials (publicId, secretId, ssid, password) VALUES (?, ?, ?, ?)', [publicId, secretId, ssid, password]);
 
         const adminLink = `/admin/${secretId}`;
@@ -60,7 +61,11 @@ app.get('/api/v/:publicId', async (req, res) => {
     const { publicId } = req.params;
     try {
         const db = await dbPromise;
-        const credential = await db.get('SELECT ssid, password FROM credentials WHERE publicId = ?', [publicId]);
+
+        // Increment views
+        await db.run('UPDATE credentials SET views = views + 1 WHERE publicId = ?', [publicId]);
+
+        const credential = await db.get('SELECT ssid, password, greeting FROM credentials WHERE publicId = ?', [publicId]);
         if (credential) {
             res.json(credential);
         } else {
@@ -82,7 +87,7 @@ app.get('/api/admin/:secretId', async (req, res) => {
     const { secretId } = req.params;
     try {
         const db = await dbPromise;
-        const credential = await db.get('SELECT publicId, ssid, password FROM credentials WHERE secretId = ?', [secretId]);
+        const credential = await db.get('SELECT publicId, ssid, password, views, greeting FROM credentials WHERE secretId = ?', [secretId]);
         if (credential) {
             res.json(credential);
         } else {
@@ -106,8 +111,11 @@ app.put('/api/admin/:secretId', async (req, res) => {
     try {
         // Dynamically import uuidv4 inside the async function
         const { v4: uuidv4 } = await import('uuid');
+        const { greeting } = req.body;
         const db = await dbPromise;
-        const result = await db.run('UPDATE credentials SET ssid = ?, password = ? WHERE secretId = ?', [ssid, password, secretId]);
+
+        // Update ssid/password/greeting. Handle case where greeting might not be sent (though frontend will send it)
+        const result = await db.run('UPDATE credentials SET ssid = ?, password = ?, greeting = ? WHERE secretId = ?', [ssid, password, greeting || 'Welcome Guest', secretId]);
 
         if (result.changes > 0) {
             res.json({ message: 'Credentials updated successfully!' });
